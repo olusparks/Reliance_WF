@@ -41,11 +41,23 @@ namespace GetProjectManagers
                 email += item.GetAttributeValue<AliasedValue>("prj.internalemailaddress").Value.ToString() +";";
             }
 
+            List<EntityReference> efr = new List<EntityReference>();
+            foreach (var item in ec.Entities)
+            {
+                Guid userId = new Guid(item.GetAttributeValue<AliasedValue>("prj.systemuserid").Value.ToString());
+                efr.Add(new EntityReference("systemuser", userId));
+            }
+
             users.Set(context, email);
+            projManagers.Set(context, efr);
         }
 
         [Output("Project Managers")]
         public OutArgument<string> users { get; set; }
+
+        [ReferenceTarget("systemuser")]
+        [Output("Project Managers")]
+        public OutArgument<EntityReference> projManagers { get; set; }
 
         public EntityCollection GetRelatedUser(IOrganizationService _service, CodeActivityContext context)
         {
