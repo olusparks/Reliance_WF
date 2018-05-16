@@ -11,6 +11,7 @@ using static Exercise.ServiceParameters;
 using System.ServiceModel.Description;
 using Microsoft.Xrm.Sdk;
 using RelianceXRM;
+using System.Collections;
 
 namespace Exercise
 {
@@ -27,7 +28,7 @@ namespace Exercise
                 _orgService = _serviceProxy;
 
                 ProjectManager2(_serviceProxy);
-
+               
                 Console.ReadLine();
 
             }
@@ -92,10 +93,26 @@ namespace Exercise
             //                   {
             //                       user = u.FullName,
             //                       email = u.InternalEMailAddress,
-            //                       name = p.msdyn_subject
-            //                   }).ToList();
-            //    project.ForEach(a => Console.WriteLine($"Name: {a.name}, User: {a.user}, Email: {a.email}"));
+            //                       name = p.msdyn_subject,
+            //                       pmGuid = u.SystemUserId
 
+            //                   }).ToList();
+            //    project.ForEach(a => Console.WriteLine($"Name: {a.name}, User: {a.user}, Email: {a.email}, PM Guid: {a.pmGuid}"));
+
+            //}
+
+            //using (RelianceInfoServiceContext svc = new RelianceInfoServiceContext(_service))
+            //{
+            //    var proj = from p in svc.msdyn_projectSet
+            //               select new
+            //               {
+            //                   recID = p.msdyn_projectId,
+            //                   projName = p.msdyn_subject
+            //               };
+            //    foreach (var item in proj)
+            //    {
+            //        yield return item.ToString();
+            //    }
             //}
 
             QueryExpression query = new QueryExpression("msdyn_project");
@@ -104,15 +121,20 @@ namespace Exercise
             query.ColumnSet.Columns.AddRange(cols);
 
             query.LinkEntities.Add(new LinkEntity("msdyn_project", "systemuser", "msdyn_projectid", "new_proj_userid", JoinOperator.Inner));
-            query.LinkEntities[0].Columns.AddColumns("internalemailaddress");
+            query.LinkEntities[0].Columns.AddColumns("internalemailaddress", "systemuserid");
             query.LinkEntities[0].EntityAlias = "prj";
 
             EntityCollection ec = _service.RetrieveMultiple(query);
+            string email = null;
             foreach (var item in ec.Entities)
             {
-                var user = item.GetAttributeValue<AliasedValue>("prj.internalemailaddress").Value.ToString();
-                var project = item.Attributes["msdyn_subject"].ToString();
+                email += item.GetAttributeValue<AliasedValue>("prj.internalemailaddress").Value.ToString() + ";";
+                //var user = item.GetAttributeValue<AliasedValue>("prj.internalemailaddress").Value.ToString();
+                //var pmGuid = item.GetAttributeValue<AliasedValue>("prj.systemuserid").Value.ToString();
+                //var project = item.Attributes["msdyn_subject"].ToString();
+                //Console.WriteLine($"project: {project}, user: {user}, PMGuid: {pmGuid}");
             }
+            Console.WriteLine(email);
 
             //foreach (var item in project)
             //{
